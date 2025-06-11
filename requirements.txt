@@ -1,4 +1,4 @@
-# requirements.txt (Cloud-Compatible Version)
+# requirements.txt (FINAL Cloud-Only Version)
 
 streamlit
 python-dotenv
@@ -11,19 +11,3 @@ google-auth-oauthlib
 python-dateutil
 PyPDF2
 python-docx
-yfinance
-schedule
-soundcard
-SpeechRecognition
-PyAudio
-gTTS
-pygame
-selenium
-webdriver-manager
-
-# For Whisper, we install from the git repository directly
-# which is more reliable in cloud environments.
-openai-whisper @ git+https://github.com/openai/whisper.git
-sounddevice
-numpy
-scipy
