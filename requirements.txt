@@ -11,3 +11,5 @@ google-auth-oauthlib
 python-dateutil
 PyPDF2
 python-docx
+selenium
+webdriver-manager
