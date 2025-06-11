@@ -1,60 +1,56 @@
-# --- UPDATED FILE: tasks/dispatcher.py (Web App Compatible) ---
+# --- File: dispatcher.py (COMPLETE AND FINAL) ---
 
-from .gemini_helper import ask_gemini
-from .google_search import google_search
-from .shopping_helper import search_shopping
-from .system_helper import open_application, find_file
-from .memory_helper import remember_info, recall_info, forget_info 
-from .file_helper import summarize_file
-from .calendar_helper import get_daily_briefing, create_calendar_event
-
-# --- COMMENTED OUT DESKTOP-ONLY FEATURES ---
-# from .reminder_helper import set_reminder, get_pending_reminders, start_reminder_thread
-# from .finance_helper import get_current_price, set_price_alert, get_active_alerts
-# from .health_helper import log_health_metric, get_health_summary
-# from .meeting_helper import start_listening, stop_listening_and_transcribe
-
-# Since we commented out the import, we don't start the thread
-# start_reminder_thread()
+# All these imports are now CORRECTED (no leading dots)
+from gemini_helper import ask_gemini
+from google_search import google_search
+from calendar_helper import get_daily_briefing, create_calendar_event
+from memory_helper import remember_info, recall_info, forget_info
 
 def dispatch_command(command_data, user_prompt):
+    """
+    Executes the command determined by the agent_router.
+    This version is for the cloud and only includes cloud-compatible tools.
+    """
     command = command_data.get("command")
-    print(f"✅ Dispatcher executing command: '{command}'")
+    params = command_data.get("params", {})
+    
+    print(f"Executing command: {command} with params: {params}")
 
-    # --- We will keep the logic for now, but the imports are off ---
-    # if command == "set_reminder": 
-    #     ...
-    # elif command == "get_reminders":
-    #     ...
-    # (And so on for other commented out features)
+    try:
+        if command == "google_search":
+            query = params.get("query")
+            return google_search(query)
+        
+        elif command == "get_daily_briefing":
+            day = params.get("day", "today")
+            return get_daily_briefing(day)
+            
+        elif command == "create_calendar_event":
+            summary = params.get("summary")
+            start_time = params.get("start_time")
+            if not summary or not start_time:
+                return "To create an event, I need a title and a start time."
+            return create_calendar_event(summary, start_time)
 
-    # --- ACTIVE WEB-COMPATIBLE COMMANDS ---
-    if command == "open_application":
-        return "I can't open applications when running in a web browser."
-    elif command == "find_file":
-        return "I can't search your local file system from a web browser."
-    elif command == "create_calendar_event":
-        return create_calendar_event(command_data)
-    elif command == "get_daily_briefing":
-        day = command_data.get("day", "today")
-        return get_daily_briefing(day)
-    elif command == "summarize_file":
-        return "File summarization is not yet supported in the web version."
-    elif command == "remember_info":
-        key = command_data.get("key")
-        value = command_data.get("value")
-        return remember_info(key, value)
-    elif command == "recall_info":
-        key = command_data.get("key")
-        return recall_info(key)
-    elif command == "forget_info":
-        key = command_data.get("key")
-        return forget_info(key)
-    elif command == "google_search":
-        query = command_data.get("query")
-        return google_search(query) if query else "What would you like me to search for?"
-    elif command == "search_shopping":
-        return "Web automation for shopping is disabled in the web version for now."
-    else:
-        print("INFO: Command not recognized or supported in web mode, falling back to general chat.")
-        return ask_gemini(user_prompt)
+        elif command == "remember_info":
+            key = params.get("key")
+            value = params.get("value")
+            return remember_info(key, value)
+            
+        elif command == "recall_info":
+            key = params.get("key")
+            return recall_info(key)
+            
+        elif command == "forget_info":
+            key = params.get("key")
+            return forget_info(key)
+
+        elif command == "general_chat":
+            return ask_gemini(user_prompt)
+            
+        else:
+            return f"I received an unknown command: {command}. I'll try to answer directly. " + ask_gemini(user_prompt)
+            
+    except Exception as e:
+        print(f"❌ Error during command dispatch: {e}")
+        return f"I'm sorry, an error occurred while I was trying to perform that action: {e}"

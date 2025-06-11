@@ -1,9 +1,10 @@
-# --- FINAL CORRECTED FILE: tasks/agent_router.py ---
+# --- File: agent_router.py (COMPLETE AND FINAL) ---
 
 import json
-import re # <-- Moved to the top
+import re
 from datetime import datetime
-from .gemini_helper import ask_gemini
+# This import is now CORRECTED (no leading dot)
+from gemini_helper import ask_gemini
 
 def determine_command(user_prompt):
     current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -27,7 +28,6 @@ def determine_command(user_prompt):
     """
     
     try:
-        print("🤔 KunnaBuddy is thinking...")
         response_text = ask_gemini(master_prompt)
         
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
@@ -35,11 +35,10 @@ def determine_command(user_prompt):
             response_text = json_match.group(0)
         else:
             print(f"❌ Error: No JSON object found in AI response. Response was: {response_text}")
-            return {"command": "general_chat", "prompt": user_prompt}
+            return {"command": "general_chat", "params": {"prompt": user_prompt}}
 
-        print(f"🧠 Raw AI Response: {response_text}")
         command_data = json.loads(response_text)
         return command_data
     except Exception as e:
         print(f"❌ Error in router: {e}. Defaulting to general chat.")
-        return {"command": "general_chat", "prompt": user_prompt}
+        return {"command": "general_chat", "params": {"prompt": user_prompt}}
