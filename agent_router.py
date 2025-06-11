@@ -3,7 +3,7 @@
 import json
 import re
 from datetime import datetime
-# This import is now CORRECTED (no leading dot)
+# Corrected import
 from gemini_helper import ask_gemini
 
 def determine_command(user_prompt):
@@ -34,11 +34,9 @@ def determine_command(user_prompt):
         if json_match:
             response_text = json_match.group(0)
         else:
-            print(f"❌ Error: No JSON object found in AI response. Response was: {response_text}")
             return {"command": "general_chat", "params": {"prompt": user_prompt}}
 
         command_data = json.loads(response_text)
         return command_data
     except Exception as e:
-        print(f"❌ Error in router: {e}. Defaulting to general chat.")
         return {"command": "general_chat", "params": {"prompt": user_prompt}}
