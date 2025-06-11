@@ -1,30 +1,27 @@
-# --- UPDATED FILE: tasks/gemini_helper.py ---
-
-import os
+# --- File: gemini_helper.py ---
+import streamlit as st
 import google.generativeai as genai
-from dotenv import load_dotenv
 
-# Make this module self-sufficient by loading the .env file
-load_dotenv()
-
-try:
-    # Use os.getenv() which is safer as it returns None if the key is not found
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        print("🔴 ERROR: GOOGLE_API_KEY environment variable not set.")
-    else:
-        genai.configure(api_key=api_key)
-        
-except Exception as e:
-    print(f"🔴 ERROR during Gemini configuration: {e}")
-
-
-# It's better to create the model instance inside the function
-# to ensure configuration has run first.
-def ask_gemini(prompt):
+@st.cache_resource
+def get_gemini_model():
+    """Initializes and returns the Gemini model, cached for efficiency."""
     try:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
+        return model
+    except Exception as e:
+        st.error(f"Fatal Error: Could not configure Gemini model. Please check GOOGLE_API_KEY in secrets. Error: {e}")
+        return None
+
+def ask_gemini(prompt_text):
+    """Sends a prompt to the Gemini model and returns the response text."""
+    model = get_gemini_model()
+    if model is None:
+        return "The AI model is not available due to a configuration error."
+    
+    try:
+        response = model.generate_content(prompt_text)
         return response.text
     except Exception as e:
-        return f"Error communicating with Gemini:\n\n{e}"
+        return f"An error occurred while communicating with the AI model: {e}"
