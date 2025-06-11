@@ -1,16 +1,11 @@
-# --- UPDATED FILE: web_app.py ---
+# --- File: web_app.py (COMPLETE AND UPDATED) ---
 
 import streamlit as st
-from dotenv import load_dotenv # <-- NEW IMPORT
 
-# --- THIS IS THE CRITICAL FIX ---
-# Load all the secrets from the .env file into the environment
-load_dotenv()
-# --- END OF FIX ---
-
-# Import the brain of your existing agent
-from tasks.agent_router import determine_command
-from tasks.dispatcher import dispatch_command
+# Assuming your helper files are now in the same root directory
+# If you kept them in the 'tasks' folder, change these back to 'from tasks...'
+from agent_router import determine_command
+from dispatcher_cloud import dispatch_command_cloud
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -20,39 +15,40 @@ st.set_page_config(
 )
 
 st.title("🤖 KunnaBuddy AI Assistant")
-st.caption("Your personal and family assistant, ready to help.")
+st.caption("Your personal AI-powered assistant. I can search the web, manage your calendar, and more!")
 
-# --- Session State Management ---
+# --- Session State Initialization ---
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello! How can I assist you today?"}]
+    st.session_state.messages = []
 
-# --- Chat History Display ---
+# --- Display Chat History ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- User Input Handling ---
+# --- Handle User Input ---
 if prompt := st.chat_input("What can I do for you?"):
-    # 1. Add user message to chat history and display it
+    # Add user message to session state and display it
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # 2. Process the command and get the assistant's response
+    # Process the prompt with the agent
     with st.chat_message("assistant"):
-        with st.spinner("🤔 Thinking..."):
-            try:
-                # --- REUSE YOUR EXISTING AGENT LOGIC ---
-                command_data = determine_command(prompt)
-                result = dispatch_command(command_data, prompt)
-                
-                # Display the result
-                st.markdown(result)
-                
-                # Add assistant response to chat history
-                st.session_state.messages.append({"role": "assistant", "content": result})
+        with st.spinner("KunnaBuddy is thinking..."):
+            # 1. Get the structured command from the router
+            command_data = determine_command(prompt)
 
-            except Exception as e:
-                error_message = f"I'm sorry, I ran into an error: {e}"
-                st.error(error_message)
-                st.session_state.messages.append({"role": "assistant", "content": error_message})
+            # --- THIS IS OUR NEW DEBUG VIEW ---
+            # It will show us the command the agent decided on, so we can see if it's working.
+            st.info(f"**DEBUG:** Router decided on command: `{command_data}`")
+            # ------------------------------------
+
+            # 2. Execute the command using the dispatcher
+            response = dispatch_command_cloud(command_data, prompt)
+            
+            # 3. Display the final response
+            st.markdown(response)
+            
+    # Add assistant response to session state
+    st.session_state.messages.append({"role": "assistant", "content": response})
